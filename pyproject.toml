@@ -1,0 +1,16 @@
+[project]
+name = "kk-human-mask"
+version = "1.1.1"
+description = "Linux ComfyUI Sapiens2 human masks, temporal person depth, and fast final depth blur"
+requires-python = ">=3.10"
+readme = "README.md"
+dependencies = ["opencv-python-headless>=4.8", "imageio-ffmpeg>=0.6", "easydict>=1.13"]
+classifiers = ["Operating System :: POSIX :: Linux", "Environment :: GPU :: NVIDIA CUDA"]
+license = {text = "Apache-2.0 for adapter; bundled upstream components retain their licenses"}
+
+[project.urls]
+Repository = "https://github.com/tofu952711/KK-human-mask"
+
+[tool.comfy]
+DisplayName = "KK人体遮罩"
+requires-comfyui = ">=0.45.0"

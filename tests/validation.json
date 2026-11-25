@@ -1,0 +1,17 @@
+{
+  "platform": "Linux / WSL2 Ubuntu 24.04",
+  "comfyui": "0.45.0",
+  "torch": "2.7.1+cu118",
+  "gpu": "NVIDIA RTX 2060 6GB",
+  "frames": 33,
+  "resolution": [
+    1080,
+    1440
+  ],
+  "first_success": true,
+  "second_success": true,
+  "ai_cache_reused": true,
+  "sharp_depth_nonzero_outside_mask": 0,
+  "blur30_diffused_pixels": 4363863,
+  "blur30_vs_60_different_pixels": 21646139
+}

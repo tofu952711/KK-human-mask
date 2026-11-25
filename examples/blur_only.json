@@ -1,0 +1,138 @@
+{
+  "last_node_id": 3,
+  "last_link_id": 2,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "NellyVD_LoadVideo",
+      "pos": [
+        40,
+        100
+      ],
+      "size": [
+        300,
+        220
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VIDEO",
+          "type": "VIDEO",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "NellyVD_LoadVideo"
+      },
+      "widgets_values": [
+        "your_depth_video.mp4"
+      ],
+      "title": "选择已有灰度深度视频"
+    },
+    {
+      "id": 2,
+      "type": "NellyVD_FinalBlur",
+      "pos": [
+        400,
+        100
+      ],
+      "size": [
+        300,
+        220
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "depth_video",
+          "type": "VIDEO",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "DEPTH_VIDEO",
+          "type": "VIDEO",
+          "links": [
+            2
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "NellyVD_FinalBlur"
+      },
+      "widgets_values": [
+        "开启",
+        30
+      ],
+      "title": "成品模糊"
+    },
+    {
+      "id": 3,
+      "type": "NellyVD_SaveVideo",
+      "pos": [
+        760,
+        100
+      ],
+      "size": [
+        300,
+        220
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "FILE_PATH",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "NellyVD_SaveVideo"
+      },
+      "widgets_values": [
+        "VideoDepth/blurred"
+      ],
+      "title": "保存模糊深度"
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      2,
+      0,
+      "VIDEO"
+    ],
+    [
+      2,
+      2,
+      0,
+      3,
+      0,
+      "VIDEO"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {},
+  "version": 0.4
+}

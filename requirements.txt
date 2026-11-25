@@ -1,0 +1,9 @@
+# Use the torch / torchvision installed with your Linux ComfyUI. Do not replace CUDA wheels.
+# Model weights are assets, not pip packages. ComfyUI Manager runs install.py after this file.
+# Sapiens2: models/sapiens2/sapiens2_0.4b_seg.safetensors
+# https://huggingface.co/facebook/sapiens2-seg-0.4b/resolve/main/sapiens2_0.4b_seg.safetensors
+# Video Depth Anything: models/video_depth_anything/video_depth_anything_vits.pth
+# https://huggingface.co/depth-anything/Video-Depth-Anything-Small/resolve/main/video_depth_anything_vits.pth
+opencv-python-headless>=4.8
+imageio-ffmpeg>=0.6
+easydict>=1.13

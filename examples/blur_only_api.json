@@ -1,0 +1,29 @@
+{
+  "1": {
+    "class_type": "NellyVD_LoadVideo",
+    "inputs": {
+      "video": "your_depth_video.mp4"
+    }
+  },
+  "2": {
+    "class_type": "NellyVD_FinalBlur",
+    "inputs": {
+      "depth_video": [
+        "1",
+        0
+      ],
+      "blur": "开启",
+      "blur.amount": 30
+    }
+  },
+  "3": {
+    "class_type": "NellyVD_SaveVideo",
+    "inputs": {
+      "video": [
+        "2",
+        0
+      ],
+      "filename_prefix": "VideoDepth/blurred"
+    }
+  }
+}

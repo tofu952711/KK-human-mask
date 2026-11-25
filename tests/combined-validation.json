@@ -1,0 +1,41 @@
+{
+  "combined_cuda_runs": [
+    {
+      "blur": 30,
+      "seconds": 0.333,
+      "executed_nodes": [
+        "2",
+        "2.0.0.blur",
+        "4",
+        "5",
+        "3"
+      ],
+      "success": true
+    },
+    {
+      "blur": 60,
+      "seconds": 0.345,
+      "executed_nodes": [
+        "2",
+        "2.0.0.blur",
+        "4",
+        "5",
+        "3"
+      ],
+      "success": true
+    },
+    {
+      "blur": 0,
+      "seconds": 0.128,
+      "executed_nodes": [
+        "2",
+        "2.0.0.blur",
+        "4",
+        "5",
+        "3"
+      ],
+      "success": true
+    }
+  ],
+  "ai_cache_reused": true
+}
