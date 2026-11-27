@@ -2,6 +2,8 @@
 
 将本地 VideoDepth 软件的人体遮罩、时序人物深度与成品模糊移植到 ComfyUI。面向 Linux + NVIDIA CUDA 开发，也提供显式 CPU 选项。全部本地处理，不连接收费 API，不上传视频。
 
+当前版本：**1.1.2**。视频信息由 FFprobe 读取，视频编码由 FFmpeg 完成，节点 ID 与工作流接口保持兼容。
+
 ## 安装
 
 使用现有 Linux ComfyUI 的 Python 环境。建议 Python 3.12、PyTorch 2.7+，需要支持 V3 `ComfyExtension`、VIDEO 和 DynamicCombo 的较新 ComfyUI。
@@ -10,7 +12,7 @@ GitHub 仓库和发布 ZIP 均不包含模型权重，只提供原始模型下�
 
 ### 手动安装
 
-从 [Releases](https://github.com/tofu952711/KK-human-mask/releases/latest) 下载 `KK-human-mask-1.1.1-linux.zip`，解压到 `ComfyUI/custom_nodes/KK人体遮罩`，或克隆仓库到该目录：
+从 [Releases](https://github.com/tofu952711/KK-human-mask/releases/latest) 下载 **Source code (zip)**，将解压出的插件根目录重命名为 `KK人体遮罩` 后放入 `ComfyUI/custom_nodes/`，或克隆仓库到该目录：
 
 ```bash
 cd /path/to/ComfyUI/custom_nodes
@@ -20,6 +22,20 @@ git clone https://github.com/tofu952711/KK-human-mask.git KK人体遮罩
 ```
 
 不要从 Windows 软件包复制 `_internal`、`.exe`、DLL 或 Windows 的 FFmpeg 到 Linux。不安装或替换 PyTorch，不需要 Tkinter、ComfyUI-Manager、VideoHelperSuite、TensorRT 或编译 CUDA 扩展。
+
+### 更新已有安装
+
+Git 克隆安装可在插件目录执行 `git pull --ff-only`。源码 ZIP 安装可更新同一个插件目录。完成后重启 ComfyUI 后端进程；仅刷新浏览器不会重新加载 Python 代码。`custom_nodes` 中只保留一份本插件，避免同名节点重复注册。云端已有自行修改的版本时，应先合并差异。
+
+### 云端 Linux 的视频工具
+
+v1.1.2 使用 `ffprobe` 读取视频尺寸、帧率与帧数，使用 `ffmpeg` 编码输出，两者的参数分别构造。`ffprobe` 不接收 `-nostdin`，通过 Python 的 `stdin=DEVNULL` 关闭交互输入；FFmpeg 编码继续使用 `-nostdin`。
+
+云端需提供 `ffprobe`。Ubuntu/Debian 可安装系统工具包 `apt-get install ffmpeg`，然后运行 `ffprobe -version` 检查。没有系统安装权限时，可设置 `KK_MASK_FFPROBE=/实际路径/ffprobe` 指定平台已有的工具。此环境变量仅用于本插件的视频信息读取。
+
+编码工具沿用 `imageio-ffmpeg` 的 Linux 可执行文件；如平台设置了 `IMAGEIO_FFMPEG_EXE`，它必须指向 **ffmpeg**，不能指向 **ffprobe**。插件不修改这两个环境变量，不替换系统工具，不升级 PyTorch/CUDA。
+
+MP4 等容器有帧数元数据时直接读取；MKV 等缺少帧数时使用 FFprobe 统计实际可解码帧数，会增加一次视频扫描。
 
 `requirements.txt` 按官方约定仅安装 Python 依赖，并用注释列出模型引用；`pyproject.toml` 的 dependencies 与它一致。`install.py` 是官方文档支持的 ComfyUI Manager 安装钩子：Manager 安装依赖后可执行它；手动安装则执行上面的命令。安装钩子校验已有模型，缺失时从原始地址下载，校验成功后放入标准模型目录。不要仅执行 pip 命令就认为模型也已安装。
 

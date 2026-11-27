@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import contextlib
+from fractions import Fraction
 import hashlib
 import json
 import math
@@ -62,19 +63,56 @@ def ensure_model(emit, cancel):
     return path
 
 
+def _probe_video_stream(probe, path, *, count_frames=False):
+    command = [probe, '-v', 'error', '-select_streams', 'v:0',
+               '-show_entries', 'stream=width,height,avg_frame_rate,r_frame_rate,nb_frames,nb_read_frames:stream_tags=rotate:stream_side_data=rotation',
+               '-of', 'json']
+    if count_frames:
+        command.append('-count_frames')
+    command += ['-i', str(Path(path).resolve())]
+    result = subprocess.run(command, stdin=subprocess.DEVNULL, capture_output=True,
+                            text=True, encoding='utf-8', errors='replace')
+    if result.returncode:
+        raise RuntimeError(result.stderr.strip() or 'ffprobe 无法读取视频信息。')
+    streams = json.loads(result.stdout).get('streams', [])
+    if not streams:
+        raise ValueError('视频中没有可读取的视频轨道。')
+    return streams[0]
+
+
+def _video_info_ffprobe(probe, path):
+    stream = _probe_video_stream(probe, path)
+    fps = 0.0
+    for key in ('avg_frame_rate', 'r_frame_rate'):
+        try:
+            fps = float(Fraction(stream.get(key, '0/0')))
+        except (ValueError, ZeroDivisionError):
+            continue
+        if math.isfinite(fps) and fps > 0:
+            break
+    width, height = int(stream.get('width', 0)), int(stream.get('height', 0))
+    rotation = stream.get('tags', {}).get('rotate', 0)
+    for side_data in stream.get('side_data_list', []):
+        if 'rotation' in side_data:
+            rotation = side_data['rotation']
+    if round(float(rotation)) % 180 == 90:
+        width, height = height, width
+    if width < 2 or height < 2 or not math.isfinite(fps) or fps <= 0:
+        raise ValueError('视频尺寸或帧率无效。')
+    frames = str(stream.get('nb_frames', ''))
+    if not frames.isdecimal() or int(frames) <= 0:
+        counted = _probe_video_stream(probe, path, count_frames=True)
+        frames = str(counted.get('nb_read_frames', ''))
+    if not frames.isdecimal() or int(frames) <= 0:
+        raise ValueError('视频中没有可解码的画面。')
+    return {'width': width, 'height': height, 'fps': fps, 'frames': int(frames)}
+
+
 def video_info(path):
-    cap = cv2.VideoCapture(str(path))
-    try:
-        if not cap.isOpened():
-            raise ValueError("无法打开视频，请选择有效的 MP4 / MOV / MKV / AVI 文件。")
-        fps = float(cap.get(cv2.CAP_PROP_FPS))
-        w, h = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        if w < 2 or h < 2 or not math.isfinite(fps) or fps <= 0:
-            raise ValueError("视频尺寸或帧率无效。")
-        return {"width": w, "height": h, "fps": fps, "frames": count}
-    finally:
-        cap.release()
+    probe = os.environ.get('KK_MASK_FFPROBE') or shutil.which('ffprobe')
+    if not probe:
+        raise RuntimeError('缺少 ffprobe。请在云端安装 FFmpeg 工具包，或用 KK_MASK_FFPROBE 指定 ffprobe 路径。')
+    return _video_info_ffprobe(probe, path)
 
 
 def target_size(w, h, maximum):

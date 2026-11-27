@@ -3,7 +3,10 @@ import argparse
 import asyncio
 import importlib.util
 import json
+import os
 from pathlib import Path
+import shutil
+import subprocess
 import sys
 import tempfile
 import threading
@@ -68,6 +71,52 @@ class LinuxTests(unittest.TestCase):
         self.assertEqual(len(listed), 7)
         ids = [node.define_schema().node_id for node in listed]
         self.assertEqual(len(ids), len(set(ids)))
+
+    def test_ffprobe_reads_mp4_and_mkv(self):
+        source = self.source(5)
+        self.assertEqual(engine.video_info(source), dict(width=56, height=28, fps=24.0, frames=5))
+        target = self.root / '中文 video.mkv'
+        subprocess.run([engine.imageio_ffmpeg.get_ffmpeg_exe(), '-nostdin', '-v', 'error',
+                        '-i', str(source), '-c', 'copy', str(target)],
+                       stdin=subprocess.DEVNULL, capture_output=True, check=True)
+        self.assertEqual(engine.video_info(target), dict(width=56, height=28, fps=24.0, frames=5))
+        rotated = self.root / 'rotated.mp4'
+        subprocess.run([engine.imageio_ffmpeg.get_ffmpeg_exe(), '-nostdin', '-v', 'error',
+                        '-display_rotation', '90', '-i', str(source), '-c', 'copy', str(rotated)],
+                       stdin=subprocess.DEVNULL, capture_output=True, check=True)
+        self.assertEqual(engine.video_info(rotated), dict(width=28, height=56, fps=24.0, frames=5))
+        cap = cv2.VideoCapture(str(rotated))
+        try:
+            ok, frame = cap.read()
+            self.assertTrue(ok)
+            self.assertEqual(frame.shape[:2], (56, 28))
+        finally:
+            cap.release()
+
+    def test_ffprobe_command_has_no_ffmpeg_flags(self):
+        stream = dict(width=56, height=28, avg_frame_rate='30000/1001', nb_frames='5')
+        response = subprocess.CompletedProcess([], 0, json.dumps({'streams': [stream]}), '')
+        with patch.object(engine.subprocess, 'run', return_value=response) as run:
+            info = engine._video_info_ffprobe('/usr/bin/ffprobe', self.root / '中文 video.mp4')
+        self.assertAlmostEqual(info['fps'], 30000 / 1001)
+        command = run.call_args.args[0]
+        self.assertEqual(command[0], '/usr/bin/ffprobe')
+        for option in ['-nostdin', '-y', '-c:v', '-pix_fmt']:
+            self.assertNotIn(option, command)
+        self.assertIs(run.call_args.kwargs['stdin'], subprocess.DEVNULL)
+
+    def test_ffprobe_errors_and_missing_binary(self):
+        bad = self.root / 'broken.mp4'
+        bad.write_bytes(b'not a video')
+        with self.assertRaises(RuntimeError):
+            engine.video_info(bad)
+        with patch.dict(os.environ, {}, clear=True), patch.object(engine.shutil, 'which', return_value=None):
+            with self.assertRaisesRegex(RuntimeError, '缺少 ffprobe'):
+                engine.video_info(bad)
+        probe = shutil.which('ffprobe')
+        with patch.dict(os.environ, {'KK_MASK_FFPROBE': probe}), \
+             patch.object(engine.shutil, 'which', side_effect=AssertionError('explicit path ignored')):
+            self.assertEqual(engine.video_info(self.source(1))['frames'], 1)
 
     def test_combined_node_keeps_ai_graph_stable(self):
         from comfy_execution.graph_utils import GraphBuilder

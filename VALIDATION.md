@@ -1,5 +1,13 @@
 # Linux 验证记录
 
+## v1.1.2 云端媒体工具适配（2026-11-27）
+
+视频信息改由独立 FFprobe 命令读取，使用 `stdin=DEVNULL`，不传 `-nostdin` 或 FFmpeg 编码参数；编码仍使用 FFmpeg，节点接口保持原样。FFprobe 优先使用 `KK_MASK_FFPROBE` 指定的路径，否则从 PATH 查找。缺少帧数元数据时统计实际可解码帧数，旋转元数据对应的宽高与 OpenCV 解码保持一致。
+
+本地 WSL2 Linux 的 10 项检查全部通过，新增覆盖真实 MP4、MKV、90 度旋转视频、中文和空格路径、分数帧率解析、FFprobe 参数隔离、无效媒体、缺少工具与显式工具路径；原有视频导出、模糊、缓存子图与时序边界检查继续通过。测试使用系统 FFprobe 6.1.1 与 imageio-ffmpeg 的 Linux FFmpeg 9.0.2。
+
+本次未重新执行真实模型 GPU 推理，未连接用户云端，也未验证云端定制源码。以下旧版 GPU 耗时记录仅代表此前验证。
+
 验证环境：WSL2 Ubuntu 24.04、ComfyUI 0.45.0、Python 3.12、PyTorch 2.7.1+cu118、RTX 2060 6GB。使用隔离的 ComfyUI 测试服务，没有重启现有主服务。
 
 ## 实际 GPU 工作流
